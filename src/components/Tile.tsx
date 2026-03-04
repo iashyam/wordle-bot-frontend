@@ -4,10 +4,12 @@ import { motion } from "framer-motion";
 interface TileProps {
     tile: TileState;
     isActiveRow: boolean;
+    isWin?: boolean;
+    colIndex?: number;
     onClick: () => void;
 }
 
-export const Tile = ({ tile, isActiveRow, onClick }: TileProps) => {
+export const Tile = ({ tile, isActiveRow, isWin, colIndex = 0, onClick }: TileProps) => {
     const getColors = (color: TileColor) => {
         switch (color) {
             case "green":
@@ -30,14 +32,17 @@ export const Tile = ({ tile, isActiveRow, onClick }: TileProps) => {
     return (
         <motion.div
             onClick={() => {
-                if (isActiveRow && tile.letter) {
+                if (isActiveRow && tile.letter && !isWin) {
                     onClick();
                 }
             }}
+            initial={false}
+            animate={isWin ? { y: [0, -20, 0, -10, 0] } : { y: 0 }}
+            transition={isWin ? { duration: 0.6, delay: colIndex * 0.1 } : {}}
             className={`
-        w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center text-3xl font-bold uppercase rounded
+        w-12 h-12 sm:w-[3.25rem] sm:h-[3.25rem] flex items-center justify-center text-3xl font-bold uppercase rounded
         border-2 select-none transition-colors duration-200
-        ${isActiveRow && tile.letter ? "cursor-pointer hover:opacity-80" : ""}
+        ${isActiveRow && tile.letter && !isWin ? "cursor-pointer hover:opacity-80" : ""}
         ${getColors(tile.color)}
       `}
             layout

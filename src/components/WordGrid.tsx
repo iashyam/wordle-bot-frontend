@@ -4,19 +4,22 @@ import { Tile } from "./Tile";
 interface WordGridProps {
     board: Board;
     activeRowIndex: number;
+    isWin?: boolean;
     onTileClick: (rowIndex: number, colIndex: number) => void;
 }
 
-export const WordGrid = ({ board, activeRowIndex, onTileClick }: WordGridProps) => {
+export const WordGrid = ({ board, activeRowIndex, isWin, onTileClick }: WordGridProps) => {
     return (
-        <div className="flex flex-col gap-2 mt-4 items-center">
+        <div className="flex flex-col gap-1.5 mt-2 lg:mt-4 items-center">
             {board.map((row, rowIndex) => (
-                <div key={rowIndex} className="flex gap-2">
+                <div key={rowIndex} className="flex gap-1.5">
                     {row.map((tile, colIndex) => (
                         <Tile
                             key={colIndex}
                             tile={tile}
                             isActiveRow={rowIndex === activeRowIndex}
+                            isWin={isWin && rowIndex === activeRowIndex}
+                            colIndex={colIndex}
                             onClick={() => onTileClick(rowIndex, colIndex)}
                         />
                     ))}

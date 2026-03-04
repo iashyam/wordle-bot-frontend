@@ -4,7 +4,9 @@ import { Header } from "./components/Header";
 import { WordGrid } from "./components/WordGrid";
 import { Keyboard } from "./components/Keyboard";
 import { SuggestionsSheet } from "./components/SuggestionsSheet";
+import { SuggestionsList } from "./components/SuggestionsList";
 import type { Board, Suggestion, TileColor } from "./types";
+import { motion, AnimatePresence } from "framer-motion";
 import { startSession, predictNextWord, closeSession } from "./api";
 
 const createEmptyBoard = (): Board =>
@@ -20,6 +22,13 @@ function App() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isWin, setIsWin] = useState(false);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   // Initialize session on mount
   useEffect(() => {
@@ -41,6 +50,7 @@ function App() {
       setBoard(createEmptyBoard());
       setActiveRowIndex(0);
       setIsSheetOpen(true);
+      setIsWin(false);
     } catch (err) {
       console.error("Failed to start session:", err);
     }
@@ -50,7 +60,7 @@ function App() {
   const activeCol = currentColIndex === -1 ? 5 : currentColIndex;
 
   const handleKeyPress = (key: string) => {
-    if (activeCol < 5 && activeRowIndex < 6) {
+    if (activeCol < 5 && activeRowIndex < 6 && !isWin) {
       const newBoard = [...board];
       newBoard[activeRowIndex][activeCol] = { letter: key, color: "gray" };
       setBoard(newBoard);
@@ -66,7 +76,7 @@ function App() {
   };
 
   const handleTileClick = (rowIndex: number, colIndex: number) => {
-    if (rowIndex !== activeRowIndex) return;
+    if (rowIndex !== activeRowIndex || isWin) return;
 
     const tile = board[rowIndex][colIndex];
     if (!tile.letter) return; // Don't cycle empty tiles
@@ -88,7 +98,7 @@ function App() {
   const isRowComplete = activeCol === 5;
 
   const handleApplyPattern = async () => {
-    if (!isRowComplete || !sessionId) return;
+    if (!isRowComplete || !sessionId || isWin) return;
 
     setIsLoading(true);
     try {
@@ -102,11 +112,17 @@ function App() {
       setSuggestions(res.best_guesses);
       setIsSheetOpen(true);
 
-      if (activeRowIndex < 5) {
+      if (res.remaining_count === 1 || pattern === "GGGGG") {
+        setIsWin(true);
+        showToast(pattern === "GGGGG" ? "Splendid! You found the word!" : "Only 1 possibility left!");
+      }
+
+      if (activeRowIndex < 5 && pattern !== "GGGGG") {
         setActiveRowIndex(activeRowIndex + 1);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Prediction failed:", err);
+      showToast("Word not in list.");
     } finally {
       setIsLoading(false);
     }
@@ -139,41 +155,69 @@ function App() {
 
     window.addEventListener("keydown", handlePhysicalKeyDown);
     return () => window.removeEventListener("keydown", handlePhysicalKeyDown);
-  }, [activeCol, activeRowIndex, board, isSheetOpen, handleApplyPattern, handleBackspace, handleKeyPress]);
+  }, [activeCol, activeRowIndex, board, isSheetOpen, isWin, handleApplyPattern, handleBackspace, handleKeyPress]);
 
   return (
-    <div className="w-full max-w-lg mx-auto h-screen flex flex-col relative overflow-hidden bg-wordle-bg">
-      <Header remainingCount={remainingCount} onReset={initSession} />
+    <div className="w-full h-screen flex flex-col lg:flex-row relative overflow-hidden bg-wordle-bg">
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: -20, x: "-50%" }}
+            className="fixed top-16 left-1/2 z-50 bg-white text-black font-bold px-4 py-3 rounded shadow-lg pointer-events-none whitespace-nowrap"
+          >
+            {toastMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="flex-1 flex flex-col overflow-y-auto px-4 pb-4 items-center">
-        <WordGrid
-          board={board}
-          activeRowIndex={activeRowIndex}
-          onTileClick={handleTileClick}
-        />
+      {/* Main Game Area */}
+      <div className="flex-1 flex flex-col relative w-full lg:max-w-[440px] mx-auto h-full">
+        <Header remainingCount={remainingCount} onReset={initSession} />
 
-        <div className="mt-8 mb-4 w-full flex justify-center">
-          <button
-            onClick={handleApplyPattern}
-            disabled={!isRowComplete || isLoading}
-            className={`
+        <div className="flex-1 flex flex-col overflow-y-auto px-4 pb-4 items-center">
+          <WordGrid
+            board={board}
+            activeRowIndex={activeRowIndex}
+            onTileClick={handleTileClick}
+            isWin={isWin}
+          />
+
+          <div className="mt-8 mb-4 w-full flex justify-center">
+            <button
+              onClick={handleApplyPattern}
+              disabled={!isRowComplete || isLoading}
+              className={`
               w-full max-w-[280px] py-3 rounded-lg font-bold text-lg text-white shadow-lg transition-all
               ${isRowComplete && !isLoading
-                ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-95 cursor-pointer"
-                : "bg-slate-700 text-slate-400 cursor-not-allowed"}
+                  ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-95 cursor-pointer"
+                  : "bg-slate-700 text-slate-400 cursor-not-allowed"}
             `}
-          >
-            {isLoading ? "Applying..." : "Apply Pattern"}
-          </button>
+            >
+              {isLoading ? "Applying..." : "Apply Pattern"}
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="w-full bg-wordle-bg pb-safe pt-2 border-t border-slate-800">
-        <Keyboard
-          onKeyPress={handleKeyPress}
-          onBackspace={handleBackspace}
-          onEnter={handleApplyPattern}
-        />
+        <div className="w-full bg-wordle-bg pb-safe pt-2 border-t border-slate-800 lg:border-none lg:mb-4">
+          <Keyboard
+            onKeyPress={handleKeyPress}
+            onBackspace={handleBackspace}
+            onEnter={handleApplyPattern}
+          />
+        </div>
+
+      </div> {/* End Main Game Area */}
+
+      {/* Desktop Suggestions Side Panel */}
+      <div className="hidden lg:flex w-[400px] border-l border-slate-800 flex-col bg-wordle-card shrink-0">
+        <div className="p-6 border-b border-slate-700">
+          <h2 className="text-xl font-bold text-white tracking-wide">Top Suggestions</h2>
+        </div>
+        <div className="flex-1 overflow-hidden relative">
+          <SuggestionsList suggestions={suggestions} onSelect={handleSuggestionSelect} />
+        </div>
       </div>
 
       <SuggestionsSheet
