@@ -112,9 +112,9 @@ function App() {
       setSuggestions(res.best_guesses);
       setIsSheetOpen(true);
 
-      if (res.remaining_count === 1 || pattern === "GGGGG") {
+      if (pattern === "GGGGG") {
         setIsWin(true);
-        showToast(pattern === "GGGGG" ? "Splendid! You found the word!" : "Only 1 possibility left!");
+        showToast("Splendid! You found the word!");
       }
 
       if (activeRowIndex < 5 && pattern !== "GGGGG") {
@@ -141,7 +141,10 @@ function App() {
 
   useEffect(() => {
     const handlePhysicalKeyDown = (e: KeyboardEvent) => {
-      if (isSheetOpen) return;
+      // Allow physical keyboard on desktop even if suggestions are shown
+      // lg breakpoint is 1024px in Tailwind
+      const isDesktop = window.innerWidth >= 1024;
+      if (isSheetOpen && !isDesktop) return;
 
       const key = e.key.toUpperCase();
       if (key === "ENTER") {
