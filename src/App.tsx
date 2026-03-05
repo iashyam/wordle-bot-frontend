@@ -158,22 +158,22 @@ function App() {
   }, [activeCol, activeRowIndex, board, isSheetOpen, isWin, handleApplyPattern, handleBackspace, handleKeyPress]);
 
   return (
-    <div className="w-full h-screen flex flex-col lg:flex-row relative overflow-hidden bg-wordle-bg">
+    <div className="w-full h-screen flex flex-col lg:flex-row relative overflow-hidden bg-wordle-bg justify-center">
       <AnimatePresence>
         {toastMessage && (
           <motion.div
             initial={{ opacity: 0, y: -20, x: "-50%" }}
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: -20, x: "-50%" }}
-            className="fixed top-16 left-1/2 z-50 bg-white text-black font-bold px-4 py-3 rounded shadow-lg pointer-events-none whitespace-nowrap"
+            className="absolute top-16 left-1/2 z-50 bg-wordle-gray border border-slate-700 text-white font-bold px-6 py-3 rounded shadow-lg pointer-events-none whitespace-nowrap"
           >
             {toastMessage}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Main Game Area */}
-      <div className="flex-1 flex flex-col relative w-full lg:max-w-[440px] mx-auto h-full">
+      {/* Main Game Content container (anchoring toasts over the grid) */}
+      <div className="flex-1 flex flex-col items-center relative h-full w-full max-w-[500px] mx-auto">
         <Header remainingCount={remainingCount} onReset={initSession} />
 
         <div className="flex-1 flex flex-col overflow-y-auto px-4 pb-4 items-center">
@@ -200,7 +200,7 @@ function App() {
           </div>
         </div>
 
-        <div className="w-full bg-wordle-bg pb-safe pt-2 border-t border-slate-800 lg:border-none lg:mb-4">
+        <div className="w-full pb-safe pt-2 bg-wordle-bg border-t border-slate-800 lg:border-none lg:mb-6">
           <Keyboard
             onKeyPress={handleKeyPress}
             onBackspace={handleBackspace}
@@ -211,9 +211,9 @@ function App() {
       </div> {/* End Main Game Area */}
 
       {/* Desktop Suggestions Side Panel */}
-      <div className="hidden lg:flex w-[400px] border-l border-slate-800 flex-col bg-wordle-card shrink-0">
+      <div className="hidden lg:flex w-[380px] flex-col bg-wordle-card border-l border-slate-800 shrink-0">
         <div className="p-6 border-b border-slate-700">
-          <h2 className="text-xl font-bold text-white tracking-wide">Top Suggestions</h2>
+          <h2 className="text-lg font-bold text-white tracking-widest uppercase">Top Suggestions</h2>
         </div>
         <div className="flex-1 overflow-hidden relative">
           <SuggestionsList suggestions={suggestions} onSelect={handleSuggestionSelect} />

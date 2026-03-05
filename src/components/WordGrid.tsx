@@ -39,8 +39,8 @@ export const WordGrid = ({ board, activeRowIndex, isWin, onTileClick }: WordGrid
                     <span>Green</span>
                 </div>
             </div>
-            <div className="text-xs text-wordle-yellow mt-2 -rotate-2">
-                <span className="italic">↖ Tap tiles to set color</span>
+            <div className="text-sm text-wordle-yellow mt-3 mb-1 font-bold animate-pulse">
+                <span>↖ Tap tiles to set color</span>
             </div>
         </div>
     );
