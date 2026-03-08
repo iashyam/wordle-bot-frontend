@@ -17,12 +17,14 @@ export const WordGrid = ({ board, activeRowIndex, isWin, onTileClick, onNativeIn
     // Get the current word string for the hidden input
     const currentWord = board[activeRowIndex]?.map(t => t.letter).join("") || "";
 
-    // Keep focus when row changes or component mounts if we're not winning
     // We intentionally removed auto-focus on mount or row advance on mobile to prevent 
     // the keyboard popping up aggressively.
     useEffect(() => {
-        // Desktop can safely keep auto-focus since it uses the on-screen physical keyboard representation
-        // or a physical keyboard natively without blocking the UI layout.
+        // If the user strikes the winning pattern, aggressively remove focus
+        // so the keyboard dismisses immediately and they can see the whole board.
+        if (isWin) {
+            inputRef.current?.blur();
+        }
     }, [activeRowIndex, isWin]);
 
     const handleGridTap = (e: React.MouseEvent) => {

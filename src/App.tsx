@@ -5,6 +5,7 @@ import { WordGrid } from "./components/WordGrid";
 import { Keyboard } from "./components/Keyboard";
 import { SuggestionsSheet } from "./components/SuggestionsSheet";
 import { SuggestionsList } from "./components/SuggestionsList";
+import { HelpModal } from "./components/HelpModal";
 import type { Board, Suggestion, TileColor } from "./types";
 import { motion, AnimatePresence } from "framer-motion";
 import { startSession, predictNextWord, closeSession } from "./api";
@@ -21,6 +22,7 @@ function App() {
   const [remainingCount, setRemainingCount] = useState<number | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isWin, setIsWin] = useState(false);
@@ -194,7 +196,7 @@ function App() {
 
       {/* Main Game Content container (anchoring toasts over the grid) */}
       <div className="flex-1 flex flex-col items-center relative h-full w-full max-w-[500px] mx-auto">
-        <Header remainingCount={remainingCount} onReset={initSession} />
+        <Header remainingCount={remainingCount} onReset={initSession} onHelp={() => setIsHelpOpen(true)} />
 
         <div className="flex-1 flex flex-col overflow-y-auto px-4 pb-4 items-center">
           <WordGrid
@@ -247,6 +249,11 @@ function App() {
         onClose={() => setIsSheetOpen(false)}
         suggestions={suggestions}
         onSelect={handleSuggestionSelect}
+      />
+
+      <HelpModal
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
       />
     </div>
   );
