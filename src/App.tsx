@@ -129,7 +129,7 @@ function App() {
   };
 
   const handleSuggestionSelect = (word: string) => {
-    if (activeRowIndex < 6) {
+    if (activeRowIndex < 6 && !isWin) {
       const newBoard = [...board];
       for (let i = 0; i < 5; i++) {
         newBoard[activeRowIndex][i] = { letter: word[i].toUpperCase(), color: "gray" };
@@ -137,6 +137,23 @@ function App() {
       setBoard(newBoard);
       setIsSheetOpen(false);
     }
+  };
+
+  const handleNativeInputChange = (value: string) => {
+    if (isWin) return;
+
+    // We only want to handle valid A-Z characters
+    const sanitizedValue = value.replace(/[^a-zA-Z]/g, "").toUpperCase();
+    const limitedValue = sanitizedValue.slice(0, 5);
+
+    const newBoard = [...board];
+    for (let i = 0; i < 5; i++) {
+      newBoard[activeRowIndex][i] = {
+        letter: limitedValue[i] || "",
+        color: newBoard[activeRowIndex][i].color
+      };
+    }
+    setBoard(newBoard);
   };
 
   useEffect(() => {
@@ -185,6 +202,8 @@ function App() {
             activeRowIndex={activeRowIndex}
             onTileClick={handleTileClick}
             isWin={isWin}
+            onNativeInputChange={handleNativeInputChange}
+            onNativeEnter={handleApplyPattern}
           />
 
           <div className="mt-8 mb-4 w-full flex justify-center">
@@ -203,7 +222,8 @@ function App() {
           </div>
         </div>
 
-        <div className="w-full pb-safe pt-2 bg-wordle-bg border-t border-slate-800 lg:border-none lg:mb-6">
+        {/* Desktop On-Screen Keyboard */}
+        <div className="hidden lg:block w-full pb-safe pt-2 bg-wordle-bg border-none lg:mb-6">
           <Keyboard
             onKeyPress={handleKeyPress}
             onBackspace={handleBackspace}

@@ -1,16 +1,60 @@
 import type { Board } from "../types";
 import { Tile } from "./Tile";
+import { useRef, useEffect } from "react";
 
 interface WordGridProps {
     board: Board;
     activeRowIndex: number;
     isWin?: boolean;
     onTileClick: (rowIndex: number, colIndex: number) => void;
+    onNativeInputChange?: (value: string) => void;
+    onNativeEnter?: () => void;
 }
 
-export const WordGrid = ({ board, activeRowIndex, isWin, onTileClick }: WordGridProps) => {
+export const WordGrid = ({ board, activeRowIndex, isWin, onTileClick, onNativeInputChange, onNativeEnter }: WordGridProps) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    // Get the current word string for the hidden input
+    const currentWord = board[activeRowIndex]?.map(t => t.letter).join("") || "";
+
+    // Keep focus when row changes or component mounts if we're not winning
+    useEffect(() => {
+        if (!isWin && window.innerWidth < 1024) {
+            inputRef.current?.focus();
+        }
+    }, [activeRowIndex, isWin]);
+
+    const handleGridTap = () => {
+        if (!isWin && window.innerWidth < 1024) {
+            inputRef.current?.focus();
+        }
+    };
+
     return (
-        <div className="flex flex-col gap-1.5 mt-2 lg:mt-4 items-center">
+        <div
+            className="flex flex-col gap-1.5 mt-2 lg:mt-4 items-center relative cursor-text"
+            onClick={handleGridTap}
+        >
+            {/* Hidden input to summon the native mobile keyboard */}
+            <input
+                ref={inputRef}
+                type="text"
+                value={currentWord}
+                onChange={(e) => onNativeInputChange?.(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        onNativeEnter?.();
+                    }
+                }}
+                className="opacity-0 absolute -z-10 w-0 h-0"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="characters"
+                spellCheck="false"
+                maxLength={5}
+                disabled={isWin}
+            />
+
             {board.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex gap-1.5">
                     {row.map((tile, colIndex) => (
