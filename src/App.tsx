@@ -203,7 +203,6 @@ function App() {
             onTileClick={handleTileClick}
             isWin={isWin}
             onNativeInputChange={handleNativeInputChange}
-            onNativeEnter={handleApplyPattern}
           />
 
           <div className="mt-8 mb-4 w-full flex justify-center">

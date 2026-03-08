@@ -46,6 +46,7 @@ export const Tile = ({ tile, isActiveRow, isWin, colIndex = 0, onClick }: TilePr
         ${getColors(tile.color)}
       `}
             layout
+            data-has-letter={!!tile.letter}
         >
             {tile.letter}
         </motion.div>

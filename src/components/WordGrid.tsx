@@ -18,14 +18,23 @@ export const WordGrid = ({ board, activeRowIndex, isWin, onTileClick, onNativeIn
     const currentWord = board[activeRowIndex]?.map(t => t.letter).join("") || "";
 
     // Keep focus when row changes or component mounts if we're not winning
+    // We intentionally removed auto-focus on mount or row advance on mobile to prevent 
+    // the keyboard popping up aggressively.
     useEffect(() => {
-        if (!isWin && window.innerWidth < 1024) {
-            inputRef.current?.focus();
-        }
+        // Desktop can safely keep auto-focus since it uses the on-screen physical keyboard representation
+        // or a physical keyboard natively without blocking the UI layout.
     }, [activeRowIndex, isWin]);
 
-    const handleGridTap = () => {
-        if (!isWin && window.innerWidth < 1024) {
+    const handleGridTap = (e: React.MouseEvent) => {
+        // We only want the native keyboard to summon on mobile when we tap the active row specifically,
+        // and ONLY if we aren't tapping an existing letter tile to change its color.
+
+        // Let's check if the click target is a tile that already has a letter in it.
+        // We will add a data-attribute to our Tile component, or just check text content.
+        const target = e.target as HTMLElement;
+        const isLetterTile = target.closest('[data-has-letter="true"]');
+
+        if (!isWin && window.innerWidth < 1024 && !isLetterTile) {
             inputRef.current?.focus();
         }
     };
