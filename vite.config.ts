@@ -6,16 +6,41 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
-  let proxyTarget = 'http://localhost:8000';
+  const apiUrl = env.VITE_API_URL;
+
+  if (!apiUrl) {
+    throw new Error("CRITICAL: VITE_API_URL environment variable is missing. Please set it in your environment/production settings.");
+  }
+
+  let proxyTarget: string;
   try {
-    const apiUrl = env.VITE_API_URL || 'http://localhost:8000/api';
     proxyTarget = new URL(apiUrl).origin;
   } catch (e) {
-    console.warn("Could not parse VITE_API_URL for proxy target.");
+    throw new Error(`CRITICAL: VITE_API_URL (${apiUrl}) is not a valid URL.`);
   }
 
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        name: 'api-health-check',
+        configureServer(server) {
+          server.httpServer?.once('listening', () => {
+            setTimeout(() => {
+              fetch(`${apiUrl}/health`)
+                .then(res => {
+                  if (res.ok) console.log("backend connected");
+                  else console.log("backend not connected");
+                })
+                .catch(() => {
+                  console.log("backend not connected");
+                });
+            }, 100); // Small delay to print after native Vite logs
+          });
+        }
+      }
+    ],
     server: {
       proxy: {
         '/api': {

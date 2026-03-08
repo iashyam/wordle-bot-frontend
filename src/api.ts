@@ -1,6 +1,6 @@
 import type { PredictNextWordResponse, StartSessionResponse } from "./types";
 
-const API_BASE = import.meta.env.DEV ? "/api" : (import.meta.env.VITE_API_URL || "/api");
+const API_BASE = import.meta.env.DEV ? "/api" : import.meta.env.VITE_API_URL;
 
 export const startSession = async (sessionId: string): Promise<StartSessionResponse> => {
     const res = await fetch(`${API_BASE}/start`, {
