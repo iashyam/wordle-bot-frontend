@@ -8,10 +8,9 @@ interface WordGridProps {
     isWin?: boolean;
     onTileClick: (rowIndex: number, colIndex: number) => void;
     onNativeInputChange?: (value: string) => void;
-    onNativeEnter?: () => void;
 }
 
-export const WordGrid = ({ board, activeRowIndex, isWin, onTileClick, onNativeInputChange, onNativeEnter }: WordGridProps) => {
+export const WordGrid = ({ board, activeRowIndex, isWin, onTileClick, onNativeInputChange }: WordGridProps) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Get the current word string for the hidden input
@@ -54,8 +53,7 @@ export const WordGrid = ({ board, activeRowIndex, isWin, onTileClick, onNativeIn
                 onChange={(e) => onNativeInputChange?.(e.target.value)}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') {
-                        onNativeEnter?.();
-                        // Explicitly dismiss the keyboard when Enter is pressed
+                        // Explicitly dismiss the keyboard when Enter is pressed without submitting
                         e.currentTarget.blur();
                     }
                 }}
