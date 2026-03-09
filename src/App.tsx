@@ -165,6 +165,12 @@ function App() {
       const isDesktop = window.innerWidth >= 1024;
       if (isSheetOpen && !isDesktop) return;
 
+      // Ignore global keydown events if the user is currently typing inside the hidden native input
+      // This prevents the 'double typing' bug (where onChange AND window.keydown both add the letter)
+      if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") {
+        return;
+      }
+
       const key = e.key.toUpperCase();
       if (key === "ENTER") {
         handleApplyPattern();

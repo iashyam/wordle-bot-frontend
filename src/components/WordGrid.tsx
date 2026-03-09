@@ -55,9 +55,12 @@ export const WordGrid = ({ board, activeRowIndex, isWin, onTileClick, onNativeIn
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                         onNativeEnter?.();
+                        // Explicitly dismiss the keyboard when Enter is pressed
+                        e.currentTarget.blur();
                     }
                 }}
-                className="opacity-0 absolute -z-10 w-0 h-0"
+                className="opacity-0 absolute -z-10"
+                style={{ top: 0, left: -9999, width: '1px', height: '1px', fontSize: '16px' }}
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="characters"
